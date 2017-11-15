@@ -2,7 +2,6 @@
 #include <string>
 #include <iostream>
 #include <time.h>
-#include "md5.h"
 
 template <typename T>
 struct Node {
@@ -28,8 +27,16 @@ struct Node {
 	}*/
 };
 template <typename T>
+using callback = void(*) (Node<T>*);
+
+template <typename T>
 struct ret {
 	Node<T> *curr, *next;
+	bool side;
+};
+template <typename T>
+struct ret2 {
+	Node<T> *parent;
 	bool side;
 };
 template <typename T>
@@ -116,6 +123,26 @@ public:
 		}
 		return{ curr, next, side };
 	}
+	ret2<T> find2(int key) {
+		Node<T> * curr = 0;
+		Node<T> * next = root;
+		bool side = false;
+		if (next == nullptr) return{ 0,0 };
+		while (key != next->key) {
+			curr = next;
+			if (key < next->key) {
+				if (next->left == nullptr) return{ 0,0 };
+				next = next->left;
+				side = 0;
+			}
+			if (key > curr->key) {
+				if (next->right == nullptr) return{ 0,0 };
+				next = next->right;
+				side = 1;
+			}
+		}
+		return{ curr, side };
+	}
 	ret<T> findSmallest(Node<T> * prev, Node<T> * curr)
 	{
 		bool side = 1;
@@ -163,10 +190,9 @@ public:
 					n.curr->left = nullptr;
 				}
 				if (toDelete.next == root) {
-					n.next->right = root->right;
-					n.next->left = root->left;
-					root = n.next;
-					return true;
+					std::swap(root->key, n.next->key);
+					std::swap(root->data, n.next->data);
+					return del(key);
 				}
 					
 				else 
@@ -192,6 +218,51 @@ public:
 		--size;
 		return true;
 	}
+	bool del2(int key) {
+		Node<T> * parent = nullptr, * del = root;
+		while (key != del->key) {
+			parent = del;
+			if (key > del->key) del = del->right;
+			else del = del->left;
+		}
+		// easiest
+		if (!del->left && !del->right) {
+			if (del == parent->left) parent->left = nullptr;
+			else parent->right = nullptr;
+			return true;
+		}
+
+		Node<T> * replace  = nullptr;
+		// as hard as fuck
+		if (del->left && del->right) {
+			Node<T> * replaceParent;
+			replaceParent = del; //2
+			replace = del->left; //0
+			while (replace->right) {
+				replaceParent = replace;
+				replace = replace->right;
+			}
+			if (replaceParent != del)
+				replaceParent->right = nullptr;
+			else
+				replaceParent->left = replace->left;
+			del->key = replace->key;
+			del->data = replace->data;
+			return true;
+		}
+		// with one branch	
+		if (!del->left && del->right) {
+			replace = del->right;
+		}
+		if (del->left && !del->right) {
+			replace = del->left;
+		}
+		del->key = replace->key;
+		del->data = replace->data;
+		del->left = replace->left;
+		del->right = replace->right;
+		return true;
+	}
 	Tret<T> get(int key) {
 		Node<T>* t = find(key);
 		if (t == nullptr) return{ false, "" };
@@ -205,7 +276,7 @@ public:
 	bool isDataInSubTree(Node<T>* el, T data) {
 		if (el == nullptr) return false;
 		if (el->data == data) return true;
-		if ((el->left!=nullptr)&&(isDataInSubTree(el->left, data))) return true;
+		if ((el->left != nullptr) && (isDataInSubTree(el->left, data))) return true;
 		if ((el->right != nullptr) && (isDataInSubTree(el->right, data))) return true;
 		return false;
 	}
@@ -222,38 +293,98 @@ public:
 			clearNode(root);
 		size = 0;
 	}
-	void printSub(Node<T>*el) {
-		if (el->left != nullptr) printSub(el->left);
-		if (el->right != nullptr) printSub(el->right);
-		std::cout << el->data << " ";
+	void goSub(Node<T>*el, callback<T> f) {
+		if (el->left != nullptr) goSub(el->left, f);
+		if (el->right != nullptr) goSub(el->right, f);
+		f(el);
+		//std::cout << el->data << " ";
 	}
-	void print() {
-		printSub(root);
+	void go(callback<T> f) {
+		goSub(root, f);
 	}
 };
+template <typename T>
+void print(Node<T>*el) {
+	if (el->left != nullptr && el->right != nullptr) {
+		std::cout << el->key << ": left " << el->left->key << " right " << el->right->key << " \n";
+		return;
+	}
+		
+	if (el->left != nullptr) {
+		std::cout << el->key << ": left " << el->left->key << " \n";
+		return;
+	}
+	if (el->right != nullptr) {
+		std::cout << el->key << ": right " << el->right->key << " \n";
+		return;
+	}
+	std::cout << el->key << ": ---- "<< "\n";
+}
+
+std::string generateString(size_t size) {
+	char * st = new char[size+1];
+	size_t i;
+	for (i = 0; i < size; i++)
+	{
+		st[i] = (char)(rand() % 25 + 97);
+	}
+	st[i] = 0;
+	return std::string(st);
+}
 
 int main()
 {
 	Tree<std::string> t;
-	srand(time(NULL));
-	for (size_t i = 0; i < 10; i++)
-	{
-		int q = rand() % 100;
-		t.add(q, md5(std::to_string(q))); //1
-	}
+	//srand(time(NULL));
+	//for (size_t i = 0; i < 10; i++)
+	//{
+	//	int q = rand() % 100;
+	//	t.add(q, generateString(20)); //1
+	//}
+	t.add(54,"54");
+	t.add(22, "33");
+	t.add(10, "a");
+	t.add(2, "b");
+	t.add(6, "qw");
+	t.add(8, "qwe");
+	t.add(4, "qwer");
+	t.add(0, "qwert");
+	t.add(99, "qwerty");
+	t.add(89, "q");
+
 	std::cout << "size: " << t.size << "\n"; //3
-	t.print(); //8
+
+	t.go(print<std::string>); //8
 	int d;
 	std::cout << "\nindex to delete: ";
 	std::cin >> d;
-	while (!t.del(d)) { //2
+	while (!t.del2(d)) { //2
 		std::cout << "wrong index";
 		std::cout << "\nindex to delete: ";
 		std::cin >> d;
 	}
 	std::cout << "\n";
+	t.go(print<std::string>); //8
+	std::cout << "\nindex to delete: ";
+	std::cin >> d;
+	while (!t.del2(d)) { //2
+		std::cout << "wrong index";
+		std::cout << "\nindex to delete: ";
+		std::cin >> d;
+	}
+	std::cout << "\n";
+	t.go(print<std::string>); //8
+	std::cout << "\nindex to delete: ";
+	std::cin >> d;
+	while (!t.del2(d)) { //2
+		std::cout << "wrong index";
+		std::cout << "\nindex to delete: ";
+		std::cin >> d;
+	}
+	std::cout << "\n";
+	t.go(print<std::string>); //8
 	std::cout << "size: " << t.size << "\n"; //3
-	t.print(); //8
+	t.go(print<std::string>); //8
 
 	std::cout << "\nindex to show: ";
 	std::cin >> d;
