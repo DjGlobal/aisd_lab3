@@ -221,13 +221,15 @@ std::string generateString(size_t size) {
 int main()
 {
 	Tree<std::string> t;
-	//srand(time(NULL));
-	//for (size_t i = 0; i < 10; i++)
-	//{
-	//	int q = rand() % 100;
-	//	t.add(q, generateString(20)); //1
-	//}
-	t.add(54, "54");
+	srand(time(NULL));
+	for (size_t i = 0; i < 10; i++)
+	{
+		int q = rand() % 100;
+		t.add(q, generateString(20)); //1
+	}
+
+	// for test purposes only
+	/*t.add(54, "54");
 	t.add(22, "33");
 	t.add(10, "a");
 	t.add(2, "b");
@@ -236,7 +238,7 @@ int main()
 	t.add(4, "qwer");
 	t.add(0, "qwert");
 	t.add(99, "qwerty");
-	t.add(89, "q");
+	t.add(89, "q");*/
 
 	std::cout << "size: " << t.size << "\n"; //3
 
