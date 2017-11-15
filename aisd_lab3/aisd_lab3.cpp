@@ -20,10 +20,10 @@ struct Node {
 		right = nullptr;
 	}
 	/*Node(int k, T d, Node* l, Node* r) {
-		key = k;
-		data = d;
-		left = l;
-		right = r;
+	key = k;
+	data = d;
+	left = l;
+	right = r;
 	}*/
 };
 template <typename T>
@@ -57,7 +57,7 @@ public:
 		clear();
 	}
 	bool add(int key, T data) {
-		Node<T> * n = new Node<T>(key,data);
+		Node<T> * n = new Node<T>(key, data);
 		if (!size) {
 			root = n;
 		}
@@ -103,123 +103,9 @@ public:
 		}
 		return curr;
 	}
-	ret<T> findPrev(int key) {
-		Node<T> * curr = 0;
-		Node<T> * next = root;
-		bool side = false;
-		if (next == nullptr) return{ 0,0,0 };
-		while (key != next->key) {
-			curr = next;
-			if (key < next->key) {
-				if (next->left == nullptr) return{ 0,0,0 };
-				next = next->left;
-				side = 0;
-			}
-			if (key > curr->key) {
-				if (next->right == nullptr) return{ 0,0,0 };
-				next = next->right;
-				side = 1;
-			}
-		}
-		return{ curr, next, side };
-	}
-	ret2<T> find2(int key) {
-		Node<T> * curr = 0;
-		Node<T> * next = root;
-		bool side = false;
-		if (next == nullptr) return{ 0,0 };
-		while (key != next->key) {
-			curr = next;
-			if (key < next->key) {
-				if (next->left == nullptr) return{ 0,0 };
-				next = next->left;
-				side = 0;
-			}
-			if (key > curr->key) {
-				if (next->right == nullptr) return{ 0,0 };
-				next = next->right;
-				side = 1;
-			}
-		}
-		return{ curr, side };
-	}
-	ret<T> findSmallest(Node<T> * prev, Node<T> * curr)
-	{
-		bool side = 1;
-		while (curr->left != nullptr) {
-			prev = curr;
-			curr = curr->left;
-			side = 0;
-		}
-		return{ prev, curr, side };
-	}
-	ret<T> findLargest(Node<T> * prev, Node<T> * curr) {
-		bool side = 0;
-		while (curr->right != nullptr) {
-			prev = curr;
-			curr = curr->right;
-			side = 1;
-		}
-		return{ prev, curr, side };
-	}
-	
 	bool del(int key) {
-		ret<T> toDelete = findPrev(key);
-		if ((toDelete.curr == 0) && toDelete.next != root) return false;
-		if (toDelete.next == nullptr) return false;
-		if (toDelete.next->left == nullptr && toDelete.next->right == nullptr) {
-			if (toDelete.next == root) {
-				root = nullptr;
-				return true;
-			}
-			if (!toDelete.side) 
-				toDelete.curr->left = nullptr;
-			else 
-				toDelete.curr->right = nullptr;
-		}
-		else {
-			ret<T> n;
-
-			if (!toDelete.side) { //delete left
-				if (toDelete.next->left != nullptr) {
-					n = findLargest(toDelete.next, toDelete.next->left);
-					n.curr->right = nullptr;
-				}
-				else {
-					n = findSmallest(toDelete.next, toDelete.next->right);
-					n.curr->left = nullptr;
-				}
-				if (toDelete.next == root) {
-					std::swap(root->key, n.next->key);
-					std::swap(root->data, n.next->data);
-					return del(key);
-				}
-					
-				else 
-					toDelete.curr->left = n.next;
-			}
-			else {//delete right
-
-				if (toDelete.next->right != nullptr) {
-					n = findSmallest(toDelete.next, toDelete.next->right);
-				}
-				else {
-					n = findLargest(toDelete.next, toDelete.next->left);
-				}
-				if (!n.side) 
-					n.curr->left = nullptr;
-				else 
-					n.curr->right = nullptr;
-				toDelete.curr->right = n.next;
-			}
-			n.next->left = toDelete.next->left;
-			n.next->right = toDelete.next->right;
-		}
-		--size;
-		return true;
-	}
-	bool del2(int key) {
-		Node<T> * parent = nullptr, * del = root;
+		if (!find(key)) return false;
+		Node<T> * parent = nullptr, *del = root;
 		while (key != del->key) {
 			parent = del;
 			if (key > del->key) del = del->right;
@@ -232,7 +118,7 @@ public:
 			return true;
 		}
 
-		Node<T> * replace  = nullptr;
+		Node<T> * replace = nullptr;
 		// as hard as fuck
 		if (del->left && del->right) {
 			Node<T> * replaceParent;
@@ -309,7 +195,7 @@ void print(Node<T>*el) {
 		std::cout << el->key << ": left " << el->left->key << " right " << el->right->key << " \n";
 		return;
 	}
-		
+
 	if (el->left != nullptr) {
 		std::cout << el->key << ": left " << el->left->key << " \n";
 		return;
@@ -318,11 +204,11 @@ void print(Node<T>*el) {
 		std::cout << el->key << ": right " << el->right->key << " \n";
 		return;
 	}
-	std::cout << el->key << ": ---- "<< "\n";
+	std::cout << el->key << ": ---- " << "\n";
 }
 
 std::string generateString(size_t size) {
-	char * st = new char[size+1];
+	char * st = new char[size + 1];
 	size_t i;
 	for (i = 0; i < size; i++)
 	{
@@ -341,7 +227,7 @@ int main()
 	//	int q = rand() % 100;
 	//	t.add(q, generateString(20)); //1
 	//}
-	t.add(54,"54");
+	t.add(54, "54");
 	t.add(22, "33");
 	t.add(10, "a");
 	t.add(2, "b");
@@ -358,7 +244,7 @@ int main()
 	int d;
 	std::cout << "\nindex to delete: ";
 	std::cin >> d;
-	while (!t.del2(d)) { //2
+	while (!t.del(d)) { //2
 		std::cout << "wrong index";
 		std::cout << "\nindex to delete: ";
 		std::cin >> d;
@@ -367,7 +253,7 @@ int main()
 	t.go(print<std::string>); //8
 	std::cout << "\nindex to delete: ";
 	std::cin >> d;
-	while (!t.del2(d)) { //2
+	while (!t.del(d)) { //2
 		std::cout << "wrong index";
 		std::cout << "\nindex to delete: ";
 		std::cin >> d;
@@ -376,7 +262,7 @@ int main()
 	t.go(print<std::string>); //8
 	std::cout << "\nindex to delete: ";
 	std::cin >> d;
-	while (!t.del2(d)) { //2
+	while (!t.del(d)) { //2
 		std::cout << "wrong index";
 		std::cout << "\nindex to delete: ";
 		std::cin >> d;
