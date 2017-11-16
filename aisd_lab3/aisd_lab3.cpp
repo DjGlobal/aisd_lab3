@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <time.h>
+#include <functional>
 
 template <typename T>
 struct Node {
@@ -19,12 +20,6 @@ struct Node {
 		left = nullptr;
 		right = nullptr;
 	}
-	/*Node(int k, T d, Node* l, Node* r) {
-	key = k;
-	data = d;
-	left = l;
-	right = r;
-	}*/
 };
 template <typename T>
 using callback = void(*) (Node<T>*);
@@ -115,6 +110,7 @@ public:
 		if (!del->left && !del->right) {
 			if (del == parent->left) parent->left = nullptr;
 			else parent->right = nullptr;
+			--size;
 			return true;
 		}
 
@@ -122,8 +118,8 @@ public:
 		// as hard as fuck
 		if (del->left && del->right) {
 			Node<T> * replaceParent;
-			replaceParent = del; //2
-			replace = del->left; //0
+			replaceParent = del; 
+			replace = del->left; 
 			while (replace->right) {
 				replaceParent = replace;
 				replace = replace->right;
@@ -134,6 +130,7 @@ public:
 				replaceParent->left = replace->left;
 			del->key = replace->key;
 			del->data = replace->data;
+			--size;
 			return true;
 		}
 		// with one branch	
@@ -147,6 +144,7 @@ public:
 		del->data = replace->data;
 		del->left = replace->left;
 		del->right = replace->right;
+		--size;
 		return true;
 	}
 	Tret<T> get(int key) {
@@ -179,16 +177,19 @@ public:
 			clearNode(root);
 		size = 0;
 	}
-	void goSub(Node<T>*el, callback<T> f) {
+	void goSub(Node<T>*el, std::function<void(Node<T> *)> f) {
 		if (el->left != nullptr) goSub(el->left, f);
 		if (el->right != nullptr) goSub(el->right, f);
 		f(el);
-		//std::cout << el->data << " ";
 	}
-	void go(callback<T> f) {
+
+	void go(std::function<void (Node<T> *)> f)
+	{
 		goSub(root, f);
 	}
 };
+
+
 template <typename T>
 void print(Node<T>*el) {
 	if (el->left != nullptr && el->right != nullptr) {
@@ -205,6 +206,19 @@ void print(Node<T>*el) {
 		return;
 	}
 	std::cout << el->key << ": ---- " << "\n";
+}
+
+size_t countThisShit(Tree<std::string> t, size_t a, size_t b) {
+	size_t i = 0;
+
+	t.go([&i, &a, &b](Node<std::string> * el) {
+		if (el->left && el->right) {
+			if ((el->left->key >= a) && (el->left->key <= b) && (el->right->key >= a) && (el->right->key <= b)) 
+				++i;
+		} 
+	});
+
+	return i;
 }
 
 std::string generateString(size_t size) {
@@ -243,6 +257,13 @@ int main()
 	std::cout << "size: " << t.size << "\n"; //3
 
 	t.go(print<std::string>); //8
+	std::cout << "counted: " << countThisShit(t, 0, 100) << "\n";
+
+	
+	system("pause");
+	return 0;
+
+
 	int d;
 	std::cout << "\nindex to delete: ";
 	std::cin >> d;
